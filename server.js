@@ -1,6 +1,6 @@
 const path = require("path");
 const express = require("express");
-const http = require("https");
+const http = require("http");
 const socketIo = require("socket.io");
 const os = require("os");
 const { version, validate } = require('uuid');
@@ -14,7 +14,7 @@ const io = socketIo(server, {
 });
 
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 
 
 const getLocalExternalIP = () => {
@@ -27,7 +27,7 @@ const getLocalExternalIP = () => {
       }
     }
   }
-  return 'localhost'; // fallback на localhost
+  return 'localhost'; 
 };
 
 const IP_ADDRESS = getLocalExternalIP();

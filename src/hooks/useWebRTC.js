@@ -24,7 +24,6 @@ const useWebRTC = (roomID) => {
   const peerMediaElements = useRef({
     [LOCAL_VIDEO]: null,
   });
-
   useEffect(() => {
     const handleNewPeer = async ({ peerID, createOffer }) => {
       if (peerID in peerConnections.current) {
@@ -45,7 +44,9 @@ const useWebRTC = (roomID) => {
       };
 
       let trackNumber = 0;
-      peerConnections.current[peerID].ontrack = ({ streams: [remoteStream] }) => {
+      peerConnections.current[peerID].ontrack = ({
+        streams: [remoteStream],
+      }) => {
         trackNumber++;
         if (trackNumber === 2) {
           addNewClient(peerID, () => {
@@ -59,7 +60,10 @@ const useWebRTC = (roomID) => {
       };
 
       localMediaStream.current.getTracks().forEach((track) => {
-        peerConnections.current[peerID].addTrack(track, localMediaStream.current);
+        peerConnections.current[peerID].addTrack(
+          track,
+          localMediaStream.current
+        );
       });
 
       if (createOffer) {
@@ -80,8 +84,11 @@ const useWebRTC = (roomID) => {
   }, [addNewClient]);
 
   useEffect(() => {
-    const setRemoteMedia = async ({ peerID, sessionDescription: remoteDescription }) => {
-      await peerConnections.current[peerID].setRemoteDescription(
+    const setRemoteMedia = async ({
+      peerID,
+      sessionDescription: remoteDescription,
+    }) => {
+      await peerConnections.current[peerID].setRemoteMedia(
         new RTCSessionDescription(remoteDescription)
       );
 
@@ -104,7 +111,9 @@ const useWebRTC = (roomID) => {
 
   useEffect(() => {
     const handleICECandidate = ({ peerID, iceCandidate }) => {
-      peerConnections.current[peerID].addIceCandidate(new RTCIceCandidate(iceCandidate));
+      peerConnections.current[peerID].addIceCandidate(
+        new RTCIceCandidate(iceCandidate)
+      );
     };
 
     socket.on(ACTIONS.ICE_CANDIDATE, handleICECandidate);
@@ -135,14 +144,14 @@ const useWebRTC = (roomID) => {
   useEffect(() => {
     async function startCapture() {
       localMediaStream.current = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: { echoCancellation: false },
         video: { width: 1280, height: 720 },
       });
 
       addNewClient(LOCAL_VIDEO, () => {
         const localVideoElement = peerMediaElements.current[LOCAL_VIDEO];
         if (localVideoElement) {
-          localVideoElement.volume = 0;
+          localVideoElement.volume = 1;
           localVideoElement.srcObject = localMediaStream.current;
         }
       });
@@ -151,6 +160,7 @@ const useWebRTC = (roomID) => {
     startCapture()
       .then(() => {
         setInVideoChat(true);
+
         socket.emit(ACTIONS.JOIN, { room: roomID });
       })
       .catch((e) => console.error("Error getting user media", e));
