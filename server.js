@@ -5,12 +5,16 @@ const socketIo = require("socket.io");
 const os = require("os");
 const { version, validate } = require('uuid');
 const ACTIONS = require('./src/Socket/action');
+require("dotenv").config()
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+const server = require("http").createServer(app);
+const io = socketIo(server, {
+  cors: "IP_ADDRESS"
+});
 
-const PORT = process.env.PORT || 3001;
+
+const PORT = process.env.PORT;
 
 
 const getLocalExternalIP = () => {
