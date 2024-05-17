@@ -1,19 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import socket from "../../Socket/index";
 import ACTIONS from "../../Socket/action";
-import { useNavigate } from "react-router"
 import { v4 } from "uuid";
 import { Link } from "react-router-dom";
 
 const Main = () => {
   const [rooms, updateRooms] = useState([]);
-  const rootNode = useRef();
-  const navigate = useNavigate()
+  const [serverInfo, setServerInfo] = useState({ ip: 'localhost', port: 3001 });
 
   useEffect(() => {
     const handleShareRooms = (data) => {
-      if (rootNode.current) {
-        updateRooms(data.rooms || []);
+      if (data.rooms) {
+        updateRooms(data.rooms);
+      }
+      if (data.ip && data.port) {
+        setServerInfo({ ip: data.ip, port: data.port });
       }
     };
 
@@ -24,6 +25,21 @@ const Main = () => {
     };
   }, []);
 
+  
+
+  useEffect(() => {
+
+    const getWebSocketURL = () => {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const { ip, port } = serverInfo;
+      return `${protocol}//${ip}:${port}`;
+    };
+
+    const socketURL = getWebSocketURL();   
+    socket.io.uri = socketURL;
+    socket.connect();
+  }, [serverInfo]);
+
   return (
     <div>
       <h1>Available Rooms</h1>
@@ -31,17 +47,13 @@ const Main = () => {
         {rooms.map((roomID) => (
           <li key={roomID}>
             {roomID}
-            <button onClick={() => navigate.pushState(`/roomID`)}>Join Room</button>
-            {/* <Link to={`/room/${roomID}`}>Join Room</Link> */}
+            <Link to={`/room/${roomID}`}>Join Room</Link>
           </li>
         ))}
       </ul>
       <Link to={`/room/${v4()}`}>Create New Room</Link>
-      {/* onClick={() => navigate.pushState(`/room/${v4}`)} */}
     </div>
   );
 };
 
 export default Main;
-
-// onClick={() => navigate.pushState(`/roomID`)}
